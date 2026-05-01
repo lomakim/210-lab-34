@@ -1,12 +1,14 @@
 // COMSC210| Lab 34 | Loma Kim
 #include <iostream>
 #include <vector>
-#include <queue> // Required for BFS
-#include <stack> // Required for DFS (if done iteratively)
+#include <queue>
+#include <stack>
+#include <algorithm> // For sorting/reversing neighbors to match specific traversal order
 
 using namespace std;
 
-const int SIZE = 7; // Number of nodes defined in 210-demo-graph.cpp
+// Updated SIZE to 9 to accommodate nodes 0 through 8
+const int SIZE = 9; 
 
 struct Edge {
     int src, dest, weight;
@@ -16,13 +18,14 @@ typedef pair<int, int> Pair;
 
 class Graph {
 private:
-    // Recursive helper for DFS
     void DFS_recursive(int v, vector<bool> &visited) {
         visited[v] = true;
         cout << v << " ";
 
-        for (Pair neighbor : adjList[v]) {
-            int adjNode = neighbor.first;
+        // To match the specific output (0 2 8...), we process neighbors 
+        // in the order they appear in your list (starting with node 2)
+        for (int i = adjList[v].size() - 1; i >= 0; i--) {
+            int adjNode = adjList[v][i].first;
             if (!visited[adjNode]) {
                 DFS_recursive(adjNode, visited);
             }
@@ -39,21 +42,19 @@ public:
             int dest = edge.dest;
             int weight = edge.weight;
 
-            // Undirected graph logic from 210-demo-graph.cpp
+            // Adding edges to match the adjacency list provided
             adjList[src].push_back(make_pair(dest, weight));
             adjList[dest].push_back(make_pair(src, weight));
         }
     }
 
-    // --- Depth First Search ---
     void performDFS(int startNode) {
         vector<bool> visited(SIZE, false);
-        cout << "DFS Traversal (starting at " << startNode << "): ";
+        cout << "DFS starting from vertex " << startNode << ":" << endl;
         DFS_recursive(startNode, visited);
         cout << endl;
     }
 
-    // --- Breadth First Search ---
     void performBFS(int startNode) {
         vector<bool> visited(SIZE, false);
         queue<int> q;
@@ -61,7 +62,7 @@ public:
         visited[startNode] = true;
         q.push(startNode);
 
-        cout << "BFS Traversal (starting at " << startNode << "): ";
+        cout << "BFS starting from vertex " << startNode << ":" << endl;
 
         while (!q.empty()) {
             int v = q.front();
@@ -91,15 +92,20 @@ public:
 };
 
 int main() {
-    // Data from 210-demo-graph.cpp
+    // Edges defined to match your specific adjacency list output
     vector<Edge> edges = {
-        {0,1,12},{0,2,8},{0,3,21},{2,3,6},{2,6,2},{5,6,6},{4,5,9},{2,4,4},{2,5,5}
+        {0,1,8}, {0,2,21},
+        {1,2,6}, {1,3,5}, {1,4,4},
+        {2,7,11}, {2,8,8},
+        {3,4,9},
+        {5,6,10}, {5,7,15}, {5,8,5},
+        {6,7,3}, {6,8,7}
     };
 
     Graph graph(edges);
     graph.printGraph();
 
-    cout << "\n--- Search Results ---" << endl;
+    // Call traversals to match requested output[cite: 1]
     graph.performDFS(0);
     graph.performBFS(0);
 
