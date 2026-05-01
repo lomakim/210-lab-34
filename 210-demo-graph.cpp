@@ -6,26 +6,24 @@
 
 using namespace std;
 
-// SIZE set to 8 to accommodate the representative stations
 const int SIZE = 8; 
 
 struct Edge {
-    int stationNum;     // The source station ID
-    int dest;           // The destination station ID
-    int numPassengers;  // Passengers waiting for this specific route
-    string stationName; // The human-readable name of the station
+    int stationNum;     
+    int dest;           
+    int numPassengers;  
+    string stationName; 
 };
 
 typedef pair<int, int> Pair;
 
 class Graph {
 private:
-    // Helper to store station names for printing
     string stationNames[SIZE];
 
     void DFS_recursive(int v, vector<bool> &visited) {
         visited[v] = true;
-        cout << stationNames[v] << " (" << v << ") ";
+        cout << stationNames[v] << " "; 
 
         for (Pair neighbor : adjList[v]) {
             int adjNode = neighbor.first;
@@ -45,10 +43,9 @@ public:
             int v = edge.dest;
             int passengers = edge.numPassengers;
 
-            // Store the station name in our helper array
             stationNames[u] = edge.stationName;
 
-            // Undirected graph logic: passengers can travel both ways between stations
+            // Maintain undirected graph logic
             adjList[u].push_back(make_pair(v, passengers));
             adjList[v].push_back(make_pair(u, passengers));
         }
@@ -72,7 +69,7 @@ public:
 
         while (!q.empty()) {
             int v = q.front();
-            cout << stationNames[v] << " ";
+            cout << stationNames[v] << " "; 
             q.pop();
 
             for (Pair neighbor : adjList[v]) {
@@ -86,19 +83,23 @@ public:
         cout << endl;
     }
 
+    // Updated printGraph to match the multi-line indented format
     void printGraph() {
         cout << "NYC Subway Connectivity (Adjacency List):" << endl;
+        cout << "------------------------------------------" << endl;
         for (int i = 0; i < adjList.size(); i++) {
-            cout << stationNames[i] << " [" << i << "] --> ";
-            for (Pair v : adjList[i])
-                cout << "(To: " << v.first << ", Passengers: " << v.second << ") ";
-            cout << endl;
+            // Print the primary station name on its own line
+            cout << stationNames[i] << endl; 
+            for (Pair v : adjList[i]) {
+                // Print each connection on a new indented line with the specific arrow and text[cite: 1]
+                cout << "    → " << stationNames[v.first] 
+                     << " (Passengers waiting for a train: " << v.second << ")" << endl;
+            }
         }
     }
 };
 
 int main() {
-    // Representative NYC Stations and Passenger counts
     vector<Edge> subwayEdges = {
         {0, 1, 450, "Grand Central"},
         {1, 2, 600, "Times Square"},
@@ -107,16 +108,15 @@ int main() {
         {4, 5, 200, "14th St - Union Sq"},
         {5, 6, 500, "Fulton St"},
         {6, 7, 120, "Wall St"},
-        {7, 0, 80,  "Bowling Green"} // Cycle back to create a loop
+        {7, 0, 80,  "Bowling Green"} 
     };
 
     Graph nycSubway(subwayEdges);
     nycSubway.printGraph();
 
     cout << "\n--- Service Analysis ---" << endl;
-    nycSubway.performDFS(0); // Explore deep into the line
-    cout << endl;
-    nycSubway.performBFS(0); // Explore all immediate transfers first
+    nycSubway.performDFS(0); 
+    nycSubway.performBFS(0); 
 
     return 0;
 }
