@@ -2,30 +2,33 @@
 #include <iostream>
 #include <vector>
 #include <queue>
-#include <stack>
-#include <algorithm> // For sorting/reversing neighbors to match specific traversal order
+#include <string>
 
 using namespace std;
 
-// Updated SIZE to 9 to accommodate nodes 0 through 8
-const int SIZE = 9; 
+// SIZE set to 8 to accommodate the representative stations
+const int SIZE = 8; 
 
 struct Edge {
-    int src, dest, weight;
+    int stationNum;     // The source station ID
+    int dest;           // The destination station ID
+    int numPassengers;  // Passengers waiting for this specific route
+    string stationName; // The human-readable name of the station
 };
 
 typedef pair<int, int> Pair;
 
 class Graph {
 private:
+    // Helper to store station names for printing
+    string stationNames[SIZE];
+
     void DFS_recursive(int v, vector<bool> &visited) {
         visited[v] = true;
-        cout << v << " ";
+        cout << stationNames[v] << " (" << v << ") ";
 
-        // To match the specific output (0 2 8...), we process neighbors 
-        // in the order they appear in your list (starting with node 2)
-        for (int i = adjList[v].size() - 1; i >= 0; i--) {
-            int adjNode = adjList[v][i].first;
+        for (Pair neighbor : adjList[v]) {
+            int adjNode = neighbor.first;
             if (!visited[adjNode]) {
                 DFS_recursive(adjNode, visited);
             }
@@ -38,19 +41,22 @@ public:
     Graph(vector<Edge> const &edges) {
         adjList.resize(SIZE);
         for (auto &edge: edges) {
-            int src = edge.src;
-            int dest = edge.dest;
-            int weight = edge.weight;
+            int u = edge.stationNum;
+            int v = edge.dest;
+            int passengers = edge.numPassengers;
 
-            // Adding edges to match the adjacency list provided
-            adjList[src].push_back(make_pair(dest, weight));
-            adjList[dest].push_back(make_pair(src, weight));
+            // Store the station name in our helper array
+            stationNames[u] = edge.stationName;
+
+            // Undirected graph logic: passengers can travel both ways between stations
+            adjList[u].push_back(make_pair(v, passengers));
+            adjList[v].push_back(make_pair(u, passengers));
         }
     }
 
     void performDFS(int startNode) {
         vector<bool> visited(SIZE, false);
-        cout << "DFS starting from vertex " << startNode << ":" << endl;
+        cout << "DFS Subway Route Exploration starting from " << stationNames[startNode] << ":" << endl;
         DFS_recursive(startNode, visited);
         cout << endl;
     }
@@ -62,11 +68,11 @@ public:
         visited[startNode] = true;
         q.push(startNode);
 
-        cout << "BFS starting from vertex " << startNode << ":" << endl;
+        cout << "BFS Subway Route Exploration starting from " << stationNames[startNode] << ":" << endl;
 
         while (!q.empty()) {
             int v = q.front();
-            cout << v << " ";
+            cout << stationNames[v] << " ";
             q.pop();
 
             for (Pair neighbor : adjList[v]) {
@@ -81,33 +87,36 @@ public:
     }
 
     void printGraph() {
-        cout << "Graph's adjacency list:" << endl;
+        cout << "NYC Subway Connectivity (Adjacency List):" << endl;
         for (int i = 0; i < adjList.size(); i++) {
-            cout << i << " --> ";
+            cout << stationNames[i] << " [" << i << "] --> ";
             for (Pair v : adjList[i])
-                cout << "(" << v.first << ", " << v.second << ") ";
+                cout << "(To: " << v.first << ", Passengers: " << v.second << ") ";
             cout << endl;
         }
     }
 };
 
 int main() {
-    // Edges defined to match your specific adjacency list output
-    vector<Edge> edges = {
-        {0,1,8}, {0,2,21},
-        {1,2,6}, {1,3,5}, {1,4,4},
-        {2,7,11}, {2,8,8},
-        {3,4,9},
-        {5,6,10}, {5,7,15}, {5,8,5},
-        {6,7,3}, {6,8,7}
+    // Representative NYC Stations and Passenger counts
+    vector<Edge> subwayEdges = {
+        {0, 1, 450, "Grand Central"},
+        {1, 2, 600, "Times Square"},
+        {2, 3, 300, "Penn Station"},
+        {3, 4, 150, "34th St - Herald Sq"},
+        {4, 5, 200, "14th St - Union Sq"},
+        {5, 6, 500, "Fulton St"},
+        {6, 7, 120, "Wall St"},
+        {7, 0, 80,  "Bowling Green"} // Cycle back to create a loop
     };
 
-    Graph graph(edges);
-    graph.printGraph();
+    Graph nycSubway(subwayEdges);
+    nycSubway.printGraph();
 
-    // Call traversals to match requested output[cite: 1]
-    graph.performDFS(0);
-    graph.performBFS(0);
+    cout << "\n--- Service Analysis ---" << endl;
+    nycSubway.performDFS(0); // Explore deep into the line
+    cout << endl;
+    nycSubway.performBFS(0); // Explore all immediate transfers first
 
     return 0;
 }
